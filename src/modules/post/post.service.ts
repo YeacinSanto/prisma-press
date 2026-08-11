@@ -53,30 +53,42 @@ const getAllPosts = async () => {
 
         // combining search(OR) and filter(AND)
 
-        where : {
-            // filtering
-            AND : [
-                {
-                    OR : [
-                        {
-                            title : {
-                                contains : "Ron",
-                                mode : "insensitive"
-                            },
-                            content : {
-                                contains : "Ron",
-                                mode : "insensitive"
-                            }
-                        }
-                    ]
-                },
-                {
-                    title : "Ronaldo"
-                },
-                {
-                    content : "Ronaldo"
-                }
-            ]
+        // where : {
+        //     // filtering
+        //     AND : [
+        //         {
+        //             OR : [
+        //                 {
+        //                     title : {
+        //                         contains : "Ron",
+        //                         mode : "insensitive"
+        //                     },
+        //                     content : {
+        //                         contains : "Ron",
+        //                         mode : "insensitive"
+        //                     }
+        //                 }
+        //             ]
+        //         },
+        //         {
+        //             title : "Ronaldo"
+        //         },
+        //         {
+        //             content : "Ronaldo"
+        //         }
+        //     ]
+        // },
+
+        // take = how many data we want to show in page,
+        // skip = how many data we want to skip
+        // like if I have 9 data in one page and I want to go page 3 so have to skip 18 data
+        // skip = (page-1) * limit
+
+        take : 1,
+        skip : 1,
+        // sorting in asending or desending order
+        orderBy : {
+            createdAt : "desc"
         },
 
         include: {
