@@ -1,25 +1,94 @@
 import { NextFunction, Request, Response } from "express"
 import { catchAsync } from "../../utils/catchAsync"
+import { commentService } from "./comment.service";
+import { sendResponse } from "../../utils/sendResponce";
+import status from "http-status";
+import { prisma } from "../../lib/prisma";
 
 
 
 const createComment = catchAsync(async(req:Request,res:Response,next:NextFunction)=>{
-    
+    const authorId = req.user?.id as string;
+    const payLoad = req.body
+    const result = await commentService.createComment(authorId,payLoad);
+    sendResponse(res,{
+        success : true,
+        statusCode : status.OK,
+        message : "Comment created successfully!",
+        data : result
+    })
 })
-const getCommentByAuthorId = catchAsync(async(req:Request,res:Response,next:NextFunction)=>{
 
+
+const getCommentByAuthorId = catchAsync(async(req:Request,res:Response,next:NextFunction)=>{
+    const {authorId} = req.params;
+
+    const result = await commentService.getCommentByAuthorId(authorId as string);
+
+    sendResponse(res,{
+        success : true,
+        statusCode : status.OK,
+        message : "Comment retrive by author Id successfully!",
+        data : result
+    })
 })
 const getCommentByCommentId = catchAsync(async(req:Request,res:Response,next:NextFunction)=>{
+    const {commentId} = req.params;
 
+    const result = await commentService.getCommentByCommentId(commentId as string);
+
+    sendResponse(res,{
+        success : true,
+        statusCode : status.OK,
+        message : "Comment retrive by comment id successfully!",
+        data : result
+    })
 })
 const updateComment = catchAsync(async(req:Request,res:Response,next:NextFunction)=>{
+    const {commentId} = req.params;
+
+    const authorId = req.user?.id
+    const data = req.body;
+
+    const result = await commentService.updateComment(commentId as string,authorId as string,data)
+
+    
+    sendResponse(res,{
+        success : true,
+        statusCode : status.OK,
+        message : "Comment updated successfully!",
+        data : result
+    })
 
 })
-const deleteComment = catchAsync(async(req:Request,res:Response,next:NextFunction)=>{
+const deleteComment = catchAsync(async (req: Request, res: Response) => {
+  const { commentId } = req.params;
+  const authorId = req.user?.id as string;
 
-})
+  const result = await commentService.deleteComment(
+    commentId as string,
+    authorId
+  );
+
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "Comment deleted successfully!",
+    data: result,
+  });
+});
 const moderateComment = catchAsync(async(req:Request,res:Response,next:NextFunction)=>{
+    const {commentId} = req.params;
+    const data = req.body;
 
+    const result = await commentService.moderateComment(commentId as string,data)
+
+    sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "Comment moderate successfully!",
+    data: result,
+  });
 })
 
 
