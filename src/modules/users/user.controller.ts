@@ -3,10 +3,6 @@ import status from "http-status";
 import { userService } from "./user.service";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponce";
-import Jwt from "jsonwebtoken";
-import config from "../../config";
-import { jwtUtils } from "../../utils/jwt";
-import { error } from "node:console";
 
 
 
@@ -54,6 +50,7 @@ const updateMyProfile = catchAsync(async(req:Request,res:Response,next:NextFunct
         message : "user profile updated successfully!",
         data : {updateProfile}
     })
+
 
 })
 

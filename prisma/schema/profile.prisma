@@ -1,13 +1,12 @@
+model Profile {
+  id           String   @id @default(uuid())
+  profilePhoto String?
+  bio          String?
+  createdAt    DateTime @default(now())
+  updateAt     DateTime @updatedAt
 
-model Profile{
-    id String @id @default(uuid())
-    profilePhoto String?
-    bio String?
-    createdAt DateTime @default(now())
-    updateAt DateTime @updatedAt
-    
-    userId String @unique
-    user User @relation(fields: [userId], references: [id])
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
 
-    @@map("profiles")
+  @@map("profiles")
 }
