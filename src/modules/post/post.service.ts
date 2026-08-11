@@ -18,7 +18,69 @@ const createPost = async (payLoad: ICreatePostPayLoad, userId: string) => {
 
 const getAllPosts = async () => {
     const posts = await prisma.post.findMany({
+
+
+        // searching or partial match
+        // where : {
+        //     title : {
+        //         contains : "Ronaldo",
+        //         mode : "insensitive"
+        //     },
+        //     content : {
+        //         contains : "Ronaldo",
+        //     }
+        // },
+
+        // where : {
+        //     OR : [
+        //         {
+        //             title : {
+        //                 contains : "Ronaldo",
+        //                 mode : "insensitive"
+        //             }
+        //         },
+        //         {
+        //             content : {
+        //                 contains : "Ronaldo"
+        //             }
+        //         }
+        //     ]
+        // },
+
+        // where : {
+        //     title : "My Fourth Post"
+        // },
+
+        // combining search(OR) and filter(AND)
+
+        where : {
+            // filtering
+            AND : [
+                {
+                    OR : [
+                        {
+                            title : {
+                                contains : "Ron",
+                                mode : "insensitive"
+                            },
+                            content : {
+                                contains : "Ron",
+                                mode : "insensitive"
+                            }
+                        }
+                    ]
+                },
+                {
+                    title : "Ronaldo"
+                },
+                {
+                    content : "Ronaldo"
+                }
+            ]
+        },
+
         include: {
+            
             author: {
                 omit: {
                     password: true
