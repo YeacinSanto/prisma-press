@@ -1,6 +1,7 @@
+import { title } from "node:process"
 import { CommentStatus, PostStatus } from "../../../generated/prisma/enums"
 import { prisma } from "../../lib/prisma"
-import { ICreatePostPayLoad, IUpdatePostPayload } from "./post.interface"
+import { ICreatePostPayLoad, IPostQuery, IUpdatePostPayload } from "./post.interface"
 
 const createPost = async (payLoad: ICreatePostPayLoad, userId: string) => {
 
@@ -16,8 +17,20 @@ const createPost = async (payLoad: ICreatePostPayLoad, userId: string) => {
 }
 
 
-const getAllPosts = async () => {
+
+
+const getAllPosts = async (query : IPostQuery) => {
+
+     const limit = query.limit ? Number(query.limit) : 10;
+     const page = query.page ? Number(query.page) : 1;
+     const skip = (page - 1) * limit
+     const sortBy = query.sortBy ? query.sortBy : "createdAt";
+     const sortOrder = query.sortOrder ? query.sortOrder : "desc"
+
+
     const posts = await prisma.post.findMany({
+
+       
 
 
         // searching or partial match
@@ -84,11 +97,47 @@ const getAllPosts = async () => {
         // like if I have 9 data in one page and I want to go page 3 so have to skip 18 data
         // skip = (page-1) * limit
 
-        take : 1,
-        skip : 1,
+        // take : 1,
+        // skip : 1,
         // sorting in asending or desending order
+        // orderBy : {
+        //     createdAt : "desc"
+        // },
+
+        where : {
+            AND : [
+
+                query.searchTerm ? {
+                    OR : [
+                        {
+                            title : {
+                                contains : query.searchTerm,
+                                mode : "insensitive"
+                            },
+                            
+                        },
+                        {content : {
+                                contains : query.searchTerm,
+                                mode : "insensitive"
+                            }}
+                    ]
+                } : {},
+
+                //title filtering
+                query.title ? {title : query.title} : {},
+
+                //content
+                query.content ? {content : query.content} : {},
+
+            ]
+        },
+
+        take : limit,
+        skip : skip,
+
         orderBy : {
-            createdAt : "desc"
+            //  sortBy : sortOrder
+            [sortBy] : sortOrder
         },
 
         include: {

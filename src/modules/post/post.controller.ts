@@ -3,6 +3,7 @@ import { catchAsync } from "../../utils/catchAsync";
 import { postService } from "./post.service";
 import { sendResponse } from "../../utils/sendResponce";
 import status from "http-status";
+import { PostWhereInput } from "../../../generated/prisma/models";
 
 
 const createPost = catchAsync(async(req:Request,res:Response,next:NextFunction)=>{
@@ -21,8 +22,14 @@ const createPost = catchAsync(async(req:Request,res:Response,next:NextFunction)=
 })
 
 
+
+
+
 const getAllPosts = catchAsync(async(req:Request,res:Response,next:NextFunction)=>{
-    const posts = await postService.getAllPosts();
+    
+    const query = req.query;
+    
+    const posts = await postService.getAllPosts(query);
 
     sendResponse(res,{
         success : true,
