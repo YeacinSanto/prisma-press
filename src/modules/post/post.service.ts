@@ -2,6 +2,7 @@ import { title } from "node:process"
 import { CommentStatus, PostStatus } from "../../../generated/prisma/enums"
 import { prisma } from "../../lib/prisma"
 import { ICreatePostPayLoad, IPostQuery, IUpdatePostPayload } from "./post.interface"
+import { PostWhereInput } from "../../../generated/prisma/models"
 
 const createPost = async (payLoad: ICreatePostPayLoad, userId: string) => {
 
@@ -19,18 +20,76 @@ const createPost = async (payLoad: ICreatePostPayLoad, userId: string) => {
 
 
 
-const getAllPosts = async (query : IPostQuery) => {
+const getAllPosts = async (query: IPostQuery) => {
 
-     const limit = query.limit ? Number(query.limit) : 10;
-     const page = query.page ? Number(query.page) : 1;
-     const skip = (page - 1) * limit
-     const sortBy = query.sortBy ? query.sortBy : "createdAt";
-     const sortOrder = query.sortOrder ? query.sortOrder : "desc"
+    const limit = query.limit ? Number(query.limit) : 10;
+    const page = query.page ? Number(query.page) : 1;
+    const skip = (page - 1) * limit
+    const sortBy = query.sortBy ? query.sortBy : "createdAt";
+    const sortOrder = query.sortOrder ? query.sortOrder : "desc"
+    const tags = query.tags ? JSON.parse(query.tags as string) : null
 
+    const tagsArray = Array.isArray(tags) ? tags : []
+
+    const andConditions: PostWhereInput[] = []
+
+    if (query.searchTerm) {
+        andConditions.push({
+            OR: [
+                {
+                    title: {
+                        contains: query.searchTerm,
+                        mode: "insensitive"
+                    },
+
+                },
+                {
+                    content: {
+                        contains: query.searchTerm,
+                        mode: "insensitive"
+                    }
+                }
+            ]
+        })
+    }
+
+    if(query.title){
+        andConditions.push({
+            title : query.title
+        })
+    };
+
+    if(query.content){
+        andConditions.push({
+            content : query.content
+        })
+    }
+    if(query.authorId){
+        andConditions.push({
+            authorId : query.authorId
+        })
+    }
+    if(query.isFeatured){
+        andConditions.push({
+            isFeatured : Boolean(query.isFeatured)
+        })
+    }
+    if(query.tags){
+        andConditions.push({
+            tags : {
+                hasSome : tagsArray
+            }
+        })
+    }
+    if(query.status){
+        andConditions.push({
+            status : query.status
+        })
+    }
 
     const posts = await prisma.post.findMany({
 
-       
+
 
 
         // searching or partial match
@@ -104,44 +163,52 @@ const getAllPosts = async (query : IPostQuery) => {
         //     createdAt : "desc"
         // },
 
-        where : {
-            AND : [
+        // dynamic searching, sorting, filtering and pagination
 
-                query.searchTerm ? {
-                    OR : [
-                        {
-                            title : {
-                                contains : query.searchTerm,
-                                mode : "insensitive"
-                            },
-                            
-                        },
-                        {content : {
-                                contains : query.searchTerm,
-                                mode : "insensitive"
-                            }}
-                    ]
-                } : {},
+        // where: {
+        //     AND: [
 
-                //title filtering
-                query.title ? {title : query.title} : {},
+        //         query.searchTerm ? {
+        //             OR: [
+        //                 {
+        //                     title: {
+        //                         contains: query.searchTerm,
+        //                         mode: "insensitive"
+        //                     },
 
-                //content
-                query.content ? {content : query.content} : {},
+        //                 },
+        //                 {
+        //                     content: {
+        //                         contains: query.searchTerm,
+        //                         mode: "insensitive"
+        //                     }
+        //                 }
+        //             ]
+        //         } : {},
 
-            ]
+        //         //title filtering
+        //         query.title ? { title: query.title } : {},
+
+        //         //content
+        //         query.content ? { content: query.content } : {},
+
+        //     ]
+        // },
+
+        where: {
+            AND: andConditions
         },
 
-        take : limit,
-        skip : skip,
+        take: limit,
+        skip: skip,
 
-        orderBy : {
+        orderBy: {
             //  sortBy : sortOrder
-            [sortBy] : sortOrder
+            [sortBy]: sortOrder
         },
 
         include: {
-            
+
             author: {
                 omit: {
                     password: true
@@ -246,7 +313,7 @@ const getMyPost = async (authorId: string) => {
 
 const getPostsStats = async () => {
     const transactionResult = await prisma.$transaction(
-        async(tx)=>{
+        async (tx) => {
             // const totalPosts = await tx.post.count();
 
             // const totalPublishedPosts = await tx.post.count({
@@ -315,36 +382,36 @@ const getPostsStats = async () => {
             ] = await Promise.all([
                 await tx.post.count(),
                 await tx.post.count({
-                where : {
-                    status : PostStatus.PUBLISHED
+                    where: {
+                        status: PostStatus.PUBLISHED
                     }
                 }),
                 await tx.post.count({
-                where : {
-                    status : PostStatus.DRAFT
+                    where: {
+                        status: PostStatus.DRAFT
                     }
                 }),
                 await tx.post.count({
-                where : {
-                    status : PostStatus.ARCHIVE
+                    where: {
+                        status: PostStatus.ARCHIVE
                     }
                 }),
                 await tx.comment.count(),
                 await tx.comment.count({
-                where : {
-                    status : CommentStatus.APPROVED
+                    where: {
+                        status: CommentStatus.APPROVED
                     }
                 }),
                 await tx.comment.count({
-                where : {
-                    status : CommentStatus.REJECT
+                    where: {
+                        status: CommentStatus.REJECT
                     }
                 }),
                 await tx.post.aggregate({
-                _sum : {
-                    views : true
-                }
-            })
+                    _sum: {
+                        views: true
+                    }
+                })
 
 
             ])
@@ -357,7 +424,7 @@ const getPostsStats = async () => {
                 totalComments,
                 totalApprovedComments,
                 totalRejectedComments,
-                totalPostViews : totalPostViewsAggregate._sum.views
+                totalPostViews: totalPostViewsAggregate._sum.views
             }
 
         }
