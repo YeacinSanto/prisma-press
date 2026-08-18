@@ -18,6 +18,23 @@ const createCheckoutSession = catchAsync(async(req:Request,res:Response,next:Nex
     })
 })
 
+
+const handleWebhook = catchAsync(async(req:Request,res:Response,next:NextFunction)=>{
+    const event = req.body as Buffer; //normally req.boy is a payload but here we use raw thats way its string
+    const signature = req.headers['stripe-signature']!
+
+    await subscriptionService.handleWebhook(event,signature as string)
+
+
+    sendResponse(res,{
+        success : true,
+        statusCode : status.OK,
+        message : "Webhook triggered successfully!",
+        data : null
+    })
+})
+
 export const subscriptionController = {
-    createCheckoutSession
+    createCheckoutSession,
+    handleWebhook
 }
