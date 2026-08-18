@@ -1,4 +1,5 @@
 
+import Stripe from "stripe"
 import config from "../../config"
 import { prisma } from "../../lib/prisma"
 import { stripe } from "../../lib/stripe"
@@ -45,6 +46,8 @@ const createCheckoutSession = async (userId: string) => {
             metadata : {userId : user.id}
         })
 
+        // console.log(session)
+
         return session.url
     })
     return{
@@ -52,9 +55,9 @@ const createCheckoutSession = async (userId: string) => {
     }
 }
 
-const handleWebhook = (payload:Buffer, signature:string) =>{
+const handleWebhook = async(payload:Buffer, signature:string) =>{
     const endpointSecret = config.stripe_webhook_secret
-
+    console.log("Inside webhook ",endpointSecret,payload)
     const event = stripe.webhooks.constructEvent(
         payload,
         signature,
@@ -66,7 +69,21 @@ const handleWebhook = (payload:Buffer, signature:string) =>{
     // Handle the event
   switch (event.type) {
     case 'checkout.session.completed':
-      const paymentIntent = event.data.object;
+        const session : Stripe.Checkout.Session = event.data.object;
+
+        const userId = session.metadata?.userId
+
+        const stripeCustomerId = session.customer
+
+        const stripeSubscriptionId = session.subscription as string;
+
+        if(!userId || !stripeSubscriptionId || !stripeCustomerId){
+            throw new Error("Webhook failed!")
+        }
+
+        const stripeSubscription = await stripe.subscriptions.retrieve(stripeSubscriptionId);
+
+        console.log(stripeSubscription.items.data[0])
        
 
       break;

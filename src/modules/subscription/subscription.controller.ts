@@ -10,6 +10,8 @@ const createCheckoutSession = catchAsync(async(req:Request,res:Response,next:Nex
 
     const result = await subscriptionService.createCheckoutSession(userId as string);
 
+    console.log(result)
+
     sendResponse(res,{
         success : true,
         statusCode : status.OK,
@@ -22,7 +24,7 @@ const createCheckoutSession = catchAsync(async(req:Request,res:Response,next:Nex
 const handleWebhook = catchAsync(async(req:Request,res:Response,next:NextFunction)=>{
     const event = req.body as Buffer; //normally req.boy is a payload but here we use raw thats way its string
     const signature = req.headers['stripe-signature']!
-
+    console.log("inside controller webhook")
     await subscriptionService.handleWebhook(event,signature as string)
 
 
