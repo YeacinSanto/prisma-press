@@ -9,8 +9,11 @@ model User {
   updatedAt    DateTime     @updatedAt
 
   profile Profile?
-
+  subscription Subscription?
+  
   post Post[]
+
+  
 
   comment Comment[]
 
